@@ -7,7 +7,7 @@ pipeline {
 
     parameters {
         string(name: 'IMAGE_NAME', defaultValue: 'aiops-risk-predictor', description: 'Docker image name, including registry if needed')
-        string(name: 'EMAIL_TO', defaultValue: 'student@example.com', description: 'Email address for pipeline notification demo')
+        string(name: 'EMAIL_TO', defaultValue: 'kartikahluwalia2011@gmail.com', description: 'Email address for pipeline notification demo')
         booleanParam(name: 'PUSH_IMAGE', defaultValue: false, description: 'Push image to Docker registry')
         booleanParam(name: 'DEPLOY_K8S', defaultValue: false, description: 'Deploy manifests to Kubernetes')
         booleanParam(name: 'SEND_EMAIL', defaultValue: true, description: 'Send build result email after pipeline finishes')
