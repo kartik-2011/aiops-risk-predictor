@@ -104,9 +104,18 @@ ansible-playbook -i ansible/inventory.ini ansible/deploy.yml
 
 The app logs JSON to stdout. In Docker/Kubernetes, collect container logs with Filebeat or Elastic Agent. A sample Filebeat config is included in `elk/filebeat.yml`.
 
+For a full local ELK demo, use:
+
+```bash
+docker compose up -d --build
+docker compose -f docker-compose.elk.yml up -d
+```
+
+Then open Kibana at http://127.0.0.1:5601 and follow `ELK_MONITORING.md`.
+
 Useful Kibana fields:
 
-- `event`
+- `app_event`
 - `service_name`
 - `risk_level`
 - `risk_score`

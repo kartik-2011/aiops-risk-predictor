@@ -5,14 +5,19 @@ filebeat.inputs:
       - /var/lib/docker/containers/*/*.log
     processors:
       - add_docker_metadata: {}
+      - drop_event:
+          when:
+            not:
+              equals:
+                container.name: "aiops-risk-predictor"
       - decode_json_fields:
           fields: ["message"]
           target: ""
           overwrite_keys: true
 
-output.elasticsearch:
-  hosts: ["http://localhost:9200"]
+output.logstash:
+  hosts: ["logstash:5044"]
 
 setup.kibana:
-  host: "http://localhost:5601"
+  host: "kibana:5601"
 

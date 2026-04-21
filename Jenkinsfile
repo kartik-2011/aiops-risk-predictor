@@ -107,6 +107,20 @@ pipeline {
                 }
             }
         }
+
+        stage('Validate ELK Monitoring Config') {
+            steps {
+                sh '''
+                    echo "ELK monitoring validation stage"
+                    test -f docker-compose.elk.yml
+                    test -f elk/filebeat.yml
+                    test -f elk/logstash.conf
+                    grep -q "aiops-risk-predictor" elk/filebeat.yml
+                    grep -q "aiops-risk-predictor" elk/logstash.conf
+                    echo "Filebeat, Logstash, Elasticsearch, and Kibana configs are present."
+                '''
+            }
+        }
     }
 
     post {
@@ -132,6 +146,7 @@ Stages demonstrated:
 - Smoke test Docker image
 - Docker push or push-readiness demo
 - Kubernetes deploy or manifest-readiness demo
+- Validate ELK monitoring config
 """
                     )
                 }

@@ -7,5 +7,8 @@ services:
       - "8000:8000"
     environment:
       - APP_ENV=local
+    labels:
+      co.elastic.logs/enabled: "true"
+      co.elastic.logs/json.keys_under_root: "true"
+      co.elastic.logs/json.add_error_key: "true"
     restart: unless-stopped
-

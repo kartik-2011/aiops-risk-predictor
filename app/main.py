@@ -34,7 +34,7 @@ def predict(telemetry: TelemetryInput) -> RiskPrediction:
     logger.info(
         "risk prediction generated",
         extra={
-            "event": "risk_prediction",
+            "app_event": "risk_prediction",
             "service_name": prediction.service_name,
             "risk_score": prediction.risk_score,
             "risk_level": prediction.risk_level,
@@ -53,4 +53,3 @@ def sample_payload() -> TelemetryInput:
         error_rate_percent=7.5,
         requests_per_minute=2400,
     )
-
