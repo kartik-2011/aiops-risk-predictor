@@ -65,26 +65,45 @@ pipeline {
         }
 
         stage('Push Docker Image') {
-            when {
-                expression { return params.PUSH_IMAGE }
-            }
             steps {
-                withCredentials([usernamePassword(credentialsId: 'DOCKERHUB_CREDENTIALS', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
-                    sh 'docker push ${IMAGE_NAME}:${IMAGE_TAG}'
-                    sh 'docker push ${IMAGE_NAME}:latest'
+                script {
+                    if (params.PUSH_IMAGE) {
+                        withCredentials([usernamePassword(credentialsId: 'DOCKERHUB_CREDENTIALS', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                            sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
+                            sh 'docker push ${IMAGE_NAME}:${IMAGE_TAG}'
+                            sh 'docker push ${IMAGE_NAME}:latest'
+                        }
+                    } else {
+                        sh '''
+                            echo "Docker push demo stage"
+                            echo "Image is ready locally: ${IMAGE_NAME}:${IMAGE_TAG}"
+                            echo "Real registry push is disabled because PUSH_IMAGE=false."
+                            docker image inspect ${IMAGE_NAME}:${IMAGE_TAG} >/dev/null
+                        '''
+                    }
                 }
             }
         }
 
         stage('Deploy to Kubernetes') {
-            when {
-                expression { return params.DEPLOY_K8S }
-            }
             steps {
-                withCredentials([file(credentialsId: 'KUBE_CONFIG', variable: 'KUBECONFIG')]) {
-                    sh 'kubectl apply -f k8s/'
-                    sh 'kubectl rollout status deployment/aiops-risk-predictor'
+                script {
+                    if (params.DEPLOY_K8S) {
+                        withCredentials([file(credentialsId: 'KUBE_CONFIG', variable: 'KUBECONFIG')]) {
+                            sh 'kubectl apply -f k8s/'
+                            sh 'kubectl rollout status deployment/aiops-risk-predictor'
+                        }
+                    } else {
+                        sh '''
+                            echo "Kubernetes deployment demo stage"
+                            echo "Real cluster deployment is disabled because DEPLOY_K8S=false."
+                            test -f k8s/deployment.yaml
+                            test -f k8s/service.yaml
+                            test -f k8s/hpa.yaml
+                            test -f k8s/configmap.yaml
+                            echo "Kubernetes manifests are present and ready."
+                        '''
+                    }
                 }
             }
         }
@@ -111,8 +130,8 @@ Stages demonstrated:
 - Run unit tests
 - Build Docker image
 - Smoke test Docker image
-- Optional Docker push
-- Optional Kubernetes deploy
+- Docker push or push-readiness demo
+- Kubernetes deploy or manifest-readiness demo
 """
                     )
                 }
