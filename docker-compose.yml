@@ -1,0 +1,11 @@
+services:
+  aiops-risk-predictor:
+    build: .
+    image: aiops-risk-predictor:latest
+    container_name: aiops-risk-predictor
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=local
+    restart: unless-stopped
+
