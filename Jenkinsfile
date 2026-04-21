@@ -60,7 +60,7 @@ pipeline {
 
         stage('Smoke Test Docker Image') {
             steps {
-                sh 'docker run --rm ${IMAGE_NAME}:${IMAGE_TAG} python -c "from app.risk_engine import _risk_level; assert _risk_level(80) == '\''critical'\''"'
+                sh "docker run --rm ${IMAGE_NAME}:${IMAGE_TAG} python -c \"from app.risk_engine import _risk_level; assert _risk_level(80) == 'critical'\""
             }
         }
 
