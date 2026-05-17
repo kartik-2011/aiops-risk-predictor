@@ -10,7 +10,7 @@ pipeline {
         string(name: 'EMAIL_TO', defaultValue: 'kartikahluwalia2011@gmail.com', description: 'Email address for pipeline notification demo')
         booleanParam(name: 'PUSH_IMAGE', defaultValue: false, description: 'Push image to Docker registry')
         booleanParam(name: 'DEPLOY_K8S', defaultValue: false, description: 'Deploy manifests to Kubernetes')
-        booleanParam(name: 'SEND_EMAIL', defaultValue: true, description: 'Send build result email after pipeline finishes')
+        booleanParam(name: 'SEND_EMAIL', defaultValue: false, description: 'Send build result email after pipeline finishes')
     }
 
     environment {
@@ -127,10 +127,11 @@ pipeline {
         always {
             script {
                 if (params.SEND_EMAIL) {
-                    mail(
-                        to: params.EMAIL_TO,
-                        subject: "Jenkins ${currentBuild.currentResult}: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                        body: """Pipeline result: ${currentBuild.currentResult}
+                    try {
+                        mail(
+                            to: params.EMAIL_TO,
+                            subject: "Jenkins ${currentBuild.currentResult}: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                            body: """Pipeline result: ${currentBuild.currentResult}
 Job: ${env.JOB_NAME}
 Build number: ${env.BUILD_NUMBER}
 Git branch: ${env.BRANCH_NAME ?: 'main'}
@@ -148,7 +149,10 @@ Stages demonstrated:
 - Kubernetes deploy or manifest-readiness demo
 - Validate ELK monitoring config
 """
-                    )
+                        )
+                    } catch (err) {
+                        echo "Email notification failed, but the pipeline result is preserved: ${err}"
+                    }
                 }
             }
         }
