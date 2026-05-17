@@ -114,18 +114,30 @@ Explain:
 
 Purpose: automate deployment on a server.
 
-Update `ansible/inventory.ini` with your server IP, then run:
+Install the Ansible collections once:
 
 ```bash
 ansible-galaxy collection install -r ansible/requirements.yml
+```
+
+For a local Docker demo, run:
+
+```bash
+ansible-playbook ansible/deploy-local.yml
+```
+
+For an Ubuntu server deployment, update `ansible/inventory.ini` with your server IP, then run:
+
+```bash
 ansible-playbook -i ansible/inventory.ini ansible/deploy.yml
 ```
 
 Explain:
 
 - Ansible installs Docker.
-- Copies project files to the server.
+- Syncs project files to the server.
 - Builds and starts the container automatically.
+- Verifies the health endpoint after deployment.
 
 ## 8. ELK Monitoring Stage
 
@@ -142,4 +154,3 @@ Explain:
 ## One-Line Pipeline Explanation
 
 Code is pushed to Git, Jenkins automatically tests it, Docker packages it, Kubernetes or Ansible deploys it, and ELK monitors the running application logs.
-

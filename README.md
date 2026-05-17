@@ -93,12 +93,27 @@ Set these Jenkins credentials/parameters as needed:
 
 ## Ansible
 
-Install the Docker collection once, update `ansible/inventory.ini`, then run:
+Install the required Ansible collections once:
 
 ```bash
 ansible-galaxy collection install -r ansible/requirements.yml
+```
+
+To deploy on your local Docker Desktop for a quick demo:
+
+```bash
+ansible-playbook ansible/deploy-local.yml
+```
+
+Open http://localhost:8001.
+
+To deploy on an Ubuntu server, update `ansible/inventory.ini` with your server IP and SSH user, then run:
+
+```bash
 ansible-playbook -i ansible/inventory.ini ansible/deploy.yml
 ```
+
+The server playbook installs Docker, syncs the project files, builds the Docker image, starts the container, and verifies `/health`.
 
 ## ELK Monitoring
 

@@ -7,13 +7,24 @@
     app_name: aiops-risk-predictor
     app_dir: /opt/aiops-risk-predictor
     app_port: 8000
+    app_env: production
+    docker_image: "{{ app_name }}:latest"
+    project_root: "{{ playbook_dir }}/.."
 
   tasks:
+    - name: Require Debian or Ubuntu hosts
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.os_family == "Debian"
+        fail_msg: "This playbook installs Docker with apt and currently supports Debian/Ubuntu hosts."
+
     - name: Install system packages
       ansible.builtin.apt:
         name:
           - docker.io
+          - python3-docker
           - python3-pip
+          - rsync
         state: present
         update_cache: true
 
@@ -29,26 +40,54 @@
         state: directory
         mode: "0755"
 
-    - name: Copy project files
-      ansible.builtin.copy:
-        src: ../
-        dest: "{{ app_dir }}"
-        mode: "0644"
+    - name: Sync project files
+      ansible.posix.synchronize:
+        src: "{{ project_root }}/"
+        dest: "{{ app_dir }}/"
+        delete: true
+        rsync_opts:
+          - "--exclude=.ansible/"
+          - "--exclude=.git/"
+          - "--exclude=.pytest_cache/"
+          - "--exclude=.venv/"
+          - "--exclude=__pycache__/"
+          - "--exclude=*.pyc"
+          - "--exclude=practice_java/*.class"
 
     - name: Build Docker image
       community.docker.docker_image:
         name: "{{ app_name }}"
         tag: latest
         source: build
+        force_source: true
         build:
           path: "{{ app_dir }}"
 
     - name: Run application container
       community.docker.docker_container:
         name: "{{ app_name }}"
-        image: "{{ app_name }}:latest"
+        image: "{{ docker_image }}"
         state: started
+        recreate: true
         restart_policy: unless-stopped
+        env:
+          APP_ENV: "{{ app_env }}"
+        labels:
+          co.elastic.logs/enabled: "true"
+          co.elastic.logs/json.keys_under_root: "true"
+          co.elastic.logs/json.add_error_key: "true"
         published_ports:
           - "{{ app_port }}:8000"
 
+    - name: Wait for health endpoint
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:{{ app_port }}/health"
+        return_content: true
+      register: health_check
+      retries: 10
+      delay: 3
+      until: health_check.status == 200
+
+    - name: Show application URL
+      ansible.builtin.debug:
+        msg: "AIOps Incident Risk Predictor is running on http://{{ ansible_host | default(inventory_hostname) }}:{{ app_port }}"
